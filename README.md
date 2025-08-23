@@ -35,7 +35,7 @@ A comprehensive machine learning system for predicting cryptocurrency prices usi
 #### **Step 1: Clone the Repository**
 ```bash
 # Clone the repository to your local machine
-git clone https://github.com/YOUR_USERNAME/crypto_predictor.git
+git clone https://github.com/Falco0906/crypto-predictor.git
 
 # Navigate to the project directory
 cd crypto_predictor
