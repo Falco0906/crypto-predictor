@@ -386,7 +386,6 @@ crypto_predictor/
 ├── coin_MATIC.csv                     # Polygon (live data)
 ├── coin_AVAX.csv                      # Avalanche (live data)
 ├── .gitignore                         # Git ignore rules
-├── WHY_POOR_ACCURACY.md               # 🆕 Root cause analysis
 └── README.md                          # This file
 ```
 
