@@ -1,4 +1,4 @@
-# 🚀 IMPROVED Cryptocurrency Price Prediction System
+# 🚀 Cryptocurrency Price Prediction System
 
 A comprehensive machine learning system for predicting cryptocurrency prices using advanced deep learning techniques. **Now with improved accuracy, better predictions, and comprehensive training visualizations!**
 
