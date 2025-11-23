@@ -1,0 +1,30 @@
+{
+  "models": {
+    "pretrained": {
+      "name": "Pre-trained Model",
+      "filename": "crypto_improved_model.h5",
+      "type": "pretrained",
+      "created_date": "Included with repository",
+      "accuracy": {
+        "directional_accuracy": 56.97,
+        "trend_accuracy": 64.3,
+        "mae": 2.97
+      },
+      "description": "Official pre-trained model included with the repository"
+    },
+    "user_20251123_130505": {
+      "name": "User Model - 20251123_130505",
+      "filename": "user_model_20251123_130505.h5",
+      "type": "user_trained",
+      "created_date": "2025-11-23T13:05:05.357332",
+      "accuracy": {
+        "directional_accuracy": 56.98375022822714,
+        "trend_accuracy": 60.303251735476806,
+        "mae": 2.974777359005999,
+        "sharpe_ratio": 2.4669113491472476
+      },
+      "description": "Model trained on 2025-11-23 13:05:05"
+    }
+  },
+  "last_used": "pretrained"
+}

@@ -38,9 +38,9 @@ if gpus:
     try:
         for gpu in gpus:
             tf.config.experimental.set_memory_growth(gpu, True)
-        print(f"✅ GPU configured: {len(gpus)} device(s) available")
+        print(f" GPU configured: {len(gpus)} device(s) available")
     except Exception as e:
-        print(f"⚠️  GPU configuration warning: {e}")
+        print(f"️  GPU configuration warning: {e}")
 
 class ImprovedCryptoPricePredictor:
     def __init__(self, sequence_length=30, prediction_days=1):
@@ -57,7 +57,7 @@ class ImprovedCryptoPricePredictor:
         
     def load_and_clean_data(self, file_paths):
         """Enhanced data cleaning with coin-specific handling"""
-        print("📊 Loading data with improved cleaning...")
+        print(" Loading data with improved cleaning...")
         
         all_data = []
         
@@ -101,7 +101,7 @@ class ImprovedCryptoPricePredictor:
                 
                 # Ensure minimum data points
                 if len(df) < 200:  # Increased minimum
-                    print(f"   ⚠️  Skipping {file_path}: insufficient data ({len(df)} records)")
+                    print(f"   ️  Skipping {file_path}: insufficient data ({len(df)} records)")
                     continue
                 
                 coin_name = os.path.basename(file_path).replace('.csv', '').replace('coin_', '')
@@ -117,25 +117,25 @@ class ImprovedCryptoPricePredictor:
                 df = df[abs(df['price_change_pct']) <= 50]
                 
                 all_data.append(df)
-                print(f"   ✓ Loaded {len(df)} records for {coin_name}")
+                print(f"    Loaded {len(df)} records for {coin_name}")
                 
             except Exception as e:
-                print(f"   ❌ Error processing {file_path}: {str(e)}")
+                print(f"    Error processing {file_path}: {str(e)}")
                 continue
         
         if not all_data:
-            print("❌ No data loaded!")
+            print(" No data loaded!")
             return None
             
         final_df = pd.concat(all_data, ignore_index=False)
         final_df = final_df.sort_index()
         
-        print(f"   ✓ Total data loaded: {len(final_df)} records across {len(all_data)} coins")
+        print(f"    Total data loaded: {len(final_df)} records across {len(all_data)} coins")
         return final_df
     
     def create_improved_features(self, df):
         """Create features optimized for percentage change prediction"""
-        print("🔧 Creating improved features...")
+        print(" Creating improved features...")
         
         enhanced_data = []
         
@@ -218,21 +218,21 @@ class ImprovedCryptoPricePredictor:
             enhanced_data.append(coin_df)
         
         if not enhanced_data:
-            print("❌ No enhanced data created!")
+            print(" No enhanced data created!")
             return None
             
         final_df = pd.concat(enhanced_data, ignore_index=False)
         final_df = final_df.dropna()
         
-        print(f"   ✓ Created {final_df.shape[1]} features for {len(final_df)} records")
+        print(f"    Created {final_df.shape[1]} features for {len(final_df)} records")
         return final_df
     
     def prepare_training_data(self, df):
         """Prepare training data with proper scaling"""
-        print("📦 Preparing training data...")
+        print(" Preparing training data...")
         
         if df is None or len(df) == 0:
-            print("❌ No data to prepare!")
+            print(" No data to prepare!")
             return None, None
         
         # Feature selection - exclude target and metadata
@@ -245,7 +245,7 @@ class ImprovedCryptoPricePredictor:
         feature_cols = feature_variances[feature_variances > 1e-8].index.tolist()
         
         if len(feature_cols) == 0:
-            print("❌ No valid features found!")
+            print(" No valid features found!")
             return None, None
         
         self.feature_columns = feature_cols
@@ -270,18 +270,18 @@ class ImprovedCryptoPricePredictor:
                 y_targets.append(coin_targets[i])
         
         if len(X_sequences) == 0:
-            print("❌ No sequences created!")
+            print(" No sequences created!")
             return None, None
         
         X = np.array(X_sequences)
         y = np.array(y_targets)
         
-        print(f"   ✓ Created {len(X)} sequences with shape {X.shape}")
+        print(f"    Created {len(X)} sequences with shape {X.shape}")
         return X, y
     
     def build_improved_model(self, input_shape):
         """Build a simpler, more stable model"""
-        print("🏗️ Building improved model...")
+        print("️ Building improved model...")
         
         model = Sequential([
             # First LSTM layer
@@ -311,16 +311,16 @@ class ImprovedCryptoPricePredictor:
             metrics=['mae', 'mse']
         )
         
-        print(f"   ✓ Model built with {model.count_params():,} parameters")
+        print(f"    Model built with {model.count_params():,} parameters")
         return model
     
     def train_improved_model(self, X, y, validation_split=0.2):
         """Train the improved model with enhanced logging"""
-        print("🚀 Training improved model...")
-        print(f"   📊 Training samples: {len(X):,}")
-        print(f"   📏 Input shape: {X.shape}")
-        print(f"   🎯 Target shape: {y.shape}")
-        print(f"   📈 Validation split: {validation_split*100:.1f}%")
+        print(" Training improved model...")
+        print(f"    Training samples: {len(X):,}")
+        print(f"    Input shape: {X.shape}")
+        print(f"    Target shape: {y.shape}")
+        print(f"    Validation split: {validation_split*100:.1f}%")
         
         if self.model is None:
             self.model = self.build_improved_model((X.shape[1], X.shape[2]))
@@ -372,19 +372,19 @@ class ImprovedCryptoPricePredictor:
             print(f"   ⏱️  Total training time: {training_duration}")
             
             self.training_history = history.history
-            print("✅ Improved training completed!")
+            print(" Improved training completed!")
             return history
             
         except Exception as e:
-            print(f"❌ Training error: {str(e)}")
+            print(f" Training error: {str(e)}")
             raise
     
     def create_training_visualizations(self, save_dir=None):
         """Create comprehensive training visualizations"""
-        print("📊 Creating training visualizations...")
+        print(" Creating training visualizations...")
         
         if not self.training_history:
-            print("❌ No training history available!")
+            print(" No training history available!")
             return
         
         # Use docs directory for visualizations
@@ -478,7 +478,7 @@ Training Summary:
         # Save high-resolution plot
         plot_path = os.path.join(save_dir, 'training_results.png')
         plt.savefig(plot_path, dpi=300, bbox_inches='tight', facecolor='white')
-        print(f"   📈 Training visualization saved to: {plot_path}")
+        print(f"    Training visualization saved to: {plot_path}")
         
         # Create additional detailed plots
         self._create_detailed_plots(save_dir)
@@ -516,7 +516,7 @@ Training Summary:
         plt.tight_layout()
         convergence_path = os.path.join(save_dir, 'loss_convergence_analysis.png')
         plt.savefig(convergence_path, dpi=300, bbox_inches='tight', facecolor='white')
-        print(f"   📊 Loss convergence analysis saved to: {convergence_path}")
+        print(f"    Loss convergence analysis saved to: {convergence_path}")
         
         # 2. Metrics correlation plot
         fig, ax = plt.subplots(figsize=(10, 8))
@@ -555,7 +555,7 @@ Training Summary:
         plt.tight_layout()
         correlation_path = os.path.join(save_dir, 'metrics_correlation.png')
         plt.savefig(correlation_path, dpi=300, bbox_inches='tight', facecolor='white')
-        print(f"   🔗 Metrics correlation matrix saved to: {correlation_path}")
+        print(f"    Metrics correlation matrix saved to: {correlation_path}")
         
         # 3. Training progress summary
         fig, ax = plt.subplots(figsize=(12, 8))
@@ -608,23 +608,23 @@ Training Summary:
         plt.tight_layout()
         summary_path = os.path.join(save_dir, 'training_progress_summary.png')
         plt.savefig(summary_path, dpi=300, bbox_inches='tight', facecolor='white')
-        print(f"   📋 Training progress summary saved to: {summary_path}")
+        print(f"    Training progress summary saved to: {summary_path}")
         
         # Save training data as CSV for further analysis
         training_data_path = os.path.join(save_dir, 'training_history.csv')
         training_df = pd.DataFrame(self.training_history)
         training_df.to_csv(training_data_path, index=False)
-        print(f"   💾 Training history data saved to: {training_data_path}")
+        print(f"    Training history data saved to: {training_data_path}")
         
         # Close plots instead of showing (prevents blocking)
         plt.close('all')
     
     def evaluate_improved_model(self, X, y):
         """Evaluate with focus on percentage change accuracy"""
-        print("📈 Evaluating improved model...")
+        print(" Evaluating improved model...")
         
         if self.model is None:
-            print("❌ No model to evaluate!")
+            print(" No model to evaluate!")
             return None, None, None
         
         predictions_scaled = self.model.predict(X)
@@ -685,10 +685,10 @@ Training Summary:
     
     def save_improved_model(self, model_dir=None):
         """Save the improved model directly to GPU models folder"""
-        print("💾 Saving improved model...")
+        print(" Saving improved model...")
         
         if self.model is None:
-            print("❌ No model to save!")
+            print(" No model to save!")
             return
         
         # Save directly to data/models_gpu_improved
@@ -729,11 +729,11 @@ Training Summary:
         with open(os.path.join(model_dir, 'model_metadata.json'), 'w') as f:
             json.dump(metadata, f, indent=2)
         
-        print(f"   ✅ Improved model saved to {model_dir}/")
+        print(f"    Improved model saved to {model_dir}/")
 
 def main():
     """Main training function"""
-    print("🚀 IMPROVED Cryptocurrency Price Predictor Training")
+    print(" IMPROVED Cryptocurrency Price Predictor Training")
     print("=" * 60)
     
     # Initialize predictor
@@ -759,11 +759,11 @@ def main():
             existing_files.append(str(PROJECT_ROOT / csv_file))
     
     if not existing_files:
-        print("❌ No CSV files found!")
+        print(" No CSV files found!")
         print(f"   Looking in: {raw_data_dir} and {PROJECT_ROOT}")
         return
     
-    print(f"📁 Found {len(existing_files)} data files")
+    print(f" Found {len(existing_files)} data files")
     
     # Load and clean data
     data = predictor.load_and_clean_data(existing_files)
@@ -789,21 +789,31 @@ def main():
     # Evaluate model
     metrics, predictions, actuals = predictor.evaluate_improved_model(X, y)
     
-    # Save model
+    # Save model (will be registered by model manager)
     predictor.save_improved_model()
     
-    print("\n🎉 IMPROVED Training completed!")
-    print(f"   🎯 Directional Accuracy: {metrics['directional_accuracy']:.2f}%")
-    print(f"   📈 Trend Accuracy: {metrics['trend_accuracy']:.2f}%")
-    print(f"   💰 Trading Return: {metrics['total_return']:.2f}%")
-    print(f"   📊 Sharpe Ratio: {metrics['sharpe_ratio']:.3f}")
+    # Register the trained model with model manager
+    from src.utils.model_manager import ModelManager
+    manager = ModelManager()
+    manager.register_user_model(metrics={
+        'directional_accuracy': metrics['directional_accuracy'],
+        'trend_accuracy': metrics['trend_accuracy'],
+        'mae': metrics['mae'],
+        'sharpe_ratio': metrics['sharpe_ratio']
+    })
     
-    print("\n📊 Training visualizations have been saved to 'docs/' folder!")
-    print("   📈 training_results.png - Main training overview")
-    print("   📊 loss_convergence_analysis.png - Loss analysis")
-    print("   🔗 metrics_correlation.png - Metrics correlation")
-    print("   📋 training_progress_summary.png - Progress summary")
-    print("   💾 training_history.csv - Raw training data")
+    print("\n IMPROVED Training completed!")
+    print(f"    Directional Accuracy: {metrics['directional_accuracy']:.2f}%")
+    print(f"    Trend Accuracy: {metrics['trend_accuracy']:.2f}%")
+    print(f"    Trading Return: {metrics['total_return']:.2f}%")
+    print(f"    Sharpe Ratio: {metrics['sharpe_ratio']:.3f}")
+    
+    print("\n Training visualizations have been saved to 'docs/' folder!")
+    print("    training_results.png - Main training overview")
+    print("    loss_convergence_analysis.png - Loss analysis")
+    print("    metrics_correlation.png - Metrics correlation")
+    print("    training_progress_summary.png - Progress summary")
+    print("    training_history.csv - Raw training data")
 
 if __name__ == "__main__":
     main()

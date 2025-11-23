@@ -46,15 +46,15 @@
   "target_column": "price_change_pct",
   "model_type": "Improved_LSTM_Percentage_Change",
   "model_version": "2.0",
-  "training_date": "2025-11-23T11:22:36.269573",
+  "training_date": "2025-11-23T13:05:05.357332",
   "tensorflow_version": "2.10.0",
   "num_features": 40,
   "architecture": "LSTM + Percentage Change Prediction",
   "training_metrics": {
-    "final_training_loss": 0.38291189074516296,
-    "final_validation_loss": 0.27488064765930176,
-    "best_validation_loss": 0.2725338041782379,
-    "total_epochs": 26
+    "final_training_loss": 0.38294997811317444,
+    "final_validation_loss": 0.2848663926124573,
+    "best_validation_loss": 0.2727818787097931,
+    "total_epochs": 30
   },
   "gpu_enabled": true
 }

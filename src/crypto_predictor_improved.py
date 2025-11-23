@@ -42,11 +42,20 @@ class ImprovedCryptoPredictor:
             if isinstance(model_dir, str):
                 model_dir = Path(model_dir)
             
-            # Try to load from improved model directory
-            model_path = model_dir / 'crypto_improved_model.h5'
+            # Try to load from improved model directory - prefer .keras format (faster)
+            model_path_keras = model_dir / 'crypto_improved_model.keras'
+            model_path_h5 = model_dir / 'crypto_improved_model.h5'
+            
+            model_path = model_path_keras if model_path_keras.exists() else model_path_h5
+            
             if model_path.exists():
-                print(f"📁 Loading improved model from {model_dir}...")
-                self.model = load_model(str(model_path))
+                print(f"[*] Loading improved model from {model_dir}...")
+                # Load with custom_objects to handle metric compatibility
+                try:
+                    self.model = load_model(str(model_path), custom_objects={'mse': 'mse'})
+                except:
+                    # Fallback: load without custom objects
+                    self.model = load_model(str(model_path), compile=False)
                 
                 # Load scalers
                 self.price_scaler = joblib.load(str(model_dir / 'price_scaler.pkl'))
@@ -61,17 +70,17 @@ class ImprovedCryptoPredictor:
                     self.feature_columns = metadata.get('feature_columns', [])
                     self.sequence_length = metadata.get('sequence_length', 30)
                 
-                print("✅ Improved model loaded successfully!")
+                print("[OK] Improved model loaded successfully!")
                 
                 # Debug info
-                print(f"   📊 Model expects {len(self.feature_columns)} features")
-                print(f"   📏 Sequence length: {self.sequence_length}")
-                print(f"   🔧 First 5 features: {self.feature_columns[:5]}")
+                print(f"   [INFO] Model expects {len(self.feature_columns)} features")
+                print(f"   [INFO] Sequence length: {self.sequence_length}")
+                print(f"   [INFO] First 5 features: {self.feature_columns[:5]}")
                 
                 return True
                 
         except Exception as e:
-            print(f"❌ Error loading improved model: {str(e)}")
+            print(f"[ERROR] Error loading improved model: {str(e)}")
             return False
     
     def create_improved_features(self, df, verbose=None):
@@ -296,13 +305,24 @@ class ImprovedCryptoPredictor:
         
         return predictions
 
-def main():
-    """Main function for making predictions"""
+def main(model_info=None):
+    """Main function for making predictions
+    
+    Args:
+        model_info: Optional dict with model information from model manager
+                   {'h5_file': path, 'keras_file': path, 'name': name}
+    """
     print("🔮 IMPROVED Cryptocurrency Price Predictor")
     print("=" * 60)
     
-    # Initialize predictor
-    predictor = ImprovedCryptoPredictor(verbose=False)
+    # Initialize predictor with optional model info
+    if model_info and 'h5_file' in model_info:
+        # Use specific model file
+        model_dir = Path(model_info['h5_file']).parent
+    else:
+        model_dir = None
+    
+    predictor = ImprovedCryptoPredictor(model_dir=model_dir, verbose=False)
     
     if predictor.model is None:
         print("❌ Failed to load improved model. Please train the model first.")
