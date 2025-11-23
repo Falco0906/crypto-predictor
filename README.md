@@ -46,12 +46,6 @@ Key pipeline steps:
 
 For a full diagram and detailed internals see `docs/ARCHITECTURE.md` and `docs/MULTI_MODEL_SYSTEM.md`.
 
-### Pipeline Visual
-
-Below is a compact visual of the pipeline (click to open full-size):
-
-![Pipeline Diagram](docs/images/pipeline_diagram.svg)
-
 Figure: Data Update → Model Manager → Selection Menu → Train / Use → Predict & Output.
 
 ### Architecture Diagram (inline)
