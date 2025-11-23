@@ -28,6 +28,57 @@ A compact, consolidated guide for running and understanding the crypto-predictor
 
 Tip: If you prefer non-interactive runs, inspect `run_full_pipeline.py` to see command-line or environment options.
 
+### macOS setup notes
+
+This project runs on macOS. Below are two recommended paths depending on your machine:
+
+- macOS (Intel / x86_64) — CPU-only
+
+   ```bash
+   # create and activate venv
+   python3 -m venv .venv
+   source .venv/bin/activate
+
+   # install dependencies (CPU path)
+   pip install --upgrade pip
+   pip install -r requirements.txt
+   pip install "numpy<2" --force-reinstall  # keep TF compatibility if using TF 2.10
+
+   # verify
+   python -c "import sys, tensorflow as tf; print(sys.version); print('TF', tf.__version__); print('GPUs', tf.config.list_physical_devices('GPU'))"
+   ```
+
+- macOS (Apple Silicon — M1 / M2) — recommended: `tensorflow-macos` + `tensorflow-metal`
+
+   Notes: Apple Silicon uses Apple's Metal GPU backend. Install `tensorflow-macos` and `tensorflow-metal` instead of the standard TensorFlow GPU wheels. Using `miniforge` (conda) or a system `venv` both work; `miniforge` is recommended for native conda builds but venv works too.
+
+   ```bash
+   # (optional) install Xcode command line tools if not present
+   xcode-select --install
+
+   # create + activate venv
+   python3 -m venv .venv
+   source .venv/bin/activate
+
+   pip install --upgrade pip setuptools wheel
+
+   # Install macOS-specific TF and Metal plugin
+   pip install tensorflow-macos
+   pip install tensorflow-metal
+
+   # Then install the remaining requirements (avoid reinstalling TensorFlow from requirements.txt)
+   pip install -r requirements.txt --no-deps
+
+   # verify
+   python -c "import tensorflow as tf; print('TF', tf.__version__); print('GPUs', tf.config.list_physical_devices('GPU'))"
+   ```
+
+Common notes for macOS
+- If `requirements.txt` pins a TensorFlow version incompatible with `tensorflow-macos`, install the macOS-specific packages first and then install the rest of requirements with `--no-deps` as shown above.
+- The project falls back to CPU if no GPU backend is available.
+- Use Python 3.10 if you want exact parity with the development environment (helps avoid TensorFlow wheel mismatches).
+
+
 ## Supported Coins
 
 BTC, ETH, SOL, LTC, ADA, DOT, LINK, MATIC, AVAX (data files live in `data/raw_data/`).
