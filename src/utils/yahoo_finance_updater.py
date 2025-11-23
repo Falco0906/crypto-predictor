@@ -67,54 +67,58 @@ class YahooFinanceUpdater:
                 
                 # Fetch historical data
                 data = ticker.history(period=period, interval=interval)
-            
-            if data.empty:
-                print(f"   ❌ No data received for {symbol}")
-                return None
-            
-            # Clean and format data
-            data = data.reset_index()
-            data.columns = [col.lower().replace(' ', '_') for col in data.columns]
-            
-            # Standardize column names
-            column_mapping = {
-                'date': 'date',
-                'open': 'open',
-                'high': 'high', 
-                'low': 'low',
-                'close': 'close',
-                'volume': 'volume',
-                'dividends': 'dividends',
-                'stock_splits': 'stock_splits'
-            }
-            
-            # Rename columns
-            for old_col, new_col in column_mapping.items():
-                if old_col in data.columns:
-                    data = data.rename(columns={old_col: new_col})
-            
-            # Ensure we have required columns
-            required_cols = ['date', 'open', 'high', 'low', 'close', 'volume']
-            missing_cols = [col for col in required_cols if col not in data.columns]
-            
-            if missing_cols:
-                print(f"   ⚠️  Missing columns: {missing_cols}")
-                # Create dummy columns if missing
-                for col in missing_cols:
-                    if col == 'volume':
-                        data[col] = np.random.randint(1000000, 10000000, len(data))
-                    else:
-                        data[col] = data['close']
-            
-            # Add coin name
-            coin_name = symbol.replace('-USD', '').upper()
-            data['coin'] = coin_name
-            
-            # Convert date to datetime if needed
-            if 'date' in data.columns:
-                data['date'] = pd.to_datetime(data['date'])
-                data = data.set_index('date')
-            
+                
+                if data.empty:
+                    print(f"   ❌ No data received for {symbol}")
+                    if attempt < retry_count - 1:
+                        import time
+                        time.sleep(2)
+                        continue
+                    return None
+                
+                # Clean and format data
+                data = data.reset_index()
+                data.columns = [col.lower().replace(' ', '_') for col in data.columns]
+                
+                # Standardize column names
+                column_mapping = {
+                    'date': 'date',
+                    'open': 'open',
+                    'high': 'high', 
+                    'low': 'low',
+                    'close': 'close',
+                    'volume': 'volume',
+                    'dividends': 'dividends',
+                    'stock_splits': 'stock_splits'
+                }
+                
+                # Rename columns
+                for old_col, new_col in column_mapping.items():
+                    if old_col in data.columns:
+                        data = data.rename(columns={old_col: new_col})
+                
+                # Ensure we have required columns
+                required_cols = ['date', 'open', 'high', 'low', 'close', 'volume']
+                missing_cols = [col for col in required_cols if col not in data.columns]
+                
+                if missing_cols:
+                    print(f"   ⚠️  Missing columns: {missing_cols}")
+                    # Create dummy columns if missing
+                    for col in missing_cols:
+                        if col == 'volume':
+                            data[col] = np.random.randint(1000000, 10000000, len(data))
+                        else:
+                            data[col] = data['close']
+                
+                # Add coin name
+                coin_name = symbol.replace('-USD', '').upper()
+                data['coin'] = coin_name
+                
+                # Convert date to datetime if needed
+                if 'date' in data.columns:
+                    data['date'] = pd.to_datetime(data['date'])
+                    data = data.set_index('date')
+                
                 print(f"   ✅ {coin_name}: {len(data)} records fetched")
                 return data
                 
