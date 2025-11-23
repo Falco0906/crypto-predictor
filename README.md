@@ -1,3 +1,113 @@
+# Cryptocurrency Price Prediction System
+
+A compact, consolidated guide for running and understanding the crypto-predictor project. Full, detailed documentation has been moved to the `docs/` folder — this README contains the essential quick start, architecture summary, and how to use the multi-model system.
+
+## Quick Summary
+
+- Purpose: GPU-accelerated LSTM-based cryptocurrency percentage-change predictor.
+- Entrypoint: `run_full_pipeline.py` — updates data, lets you choose a model (pre-trained or user-trained), trains if requested, and produces predictions for supported coins.
+- Pre-trained model: Included in `data/models_gpu_improved/` for instant use.
+- Models: User-trained models are saved with timestamps and tracked in `data/models_gpu_improved/model_registry.json`.
+
+## Quick Start (3 steps)
+
+1) Create and activate a virtual environment
+
+   # Windows PowerShell
+   python -m venv .venv; .\.venv\Scripts\Activate
+
+2) Install dependencies
+
+   pip install -r requirements.txt
+   pip install "numpy<2" --force-reinstall  # required for TensorFlow 2.10
+
+3) Run the pipeline (interactive)
+
+   # This script will update data, show the model selection menu, and run/train as requested
+   python run_full_pipeline.py
+
+Tip: If you prefer non-interactive runs, inspect `run_full_pipeline.py` to see command-line or environment options.
+
+## Supported Coins
+
+BTC, ETH, SOL, LTC, ADA, DOT, LINK, MATIC, AVAX (data files live in `data/raw_data/`).
+
+## Architecture & Multi-Model System (summary)
+
+This project uses an LSTM-based model trained on 30-day sequences of ~40 engineered features (RSI, MACD, moving averages, volatility, momentum, volume indicators, etc.). The model predicts percentage changes (not absolute prices), which are clipped for stability and used to produce multi-day sequential forecasts.
+
+Key pipeline steps:
+
+- Data collection: `src/utils/update_data.py` collects 2 years of historical data from Yahoo Finance and saves CSVs into `data/raw_data/`.
+- Model manager: `src/utils/model_manager.py` scans `data/models_gpu_improved/`, registers a pre-trained model, and lists any user-trained models recorded in `model_registry.json`.
+- Interactive selection: `run_full_pipeline.py` shows an interactive menu with all models and a "Train NEW" option.
+- Training flow: `src/crypto_training_script_improved.py` saves the trained model to `best_improved_model.h5`, then the ModelManager renames and registers it as `user_model_<timestamp>.h5` along with metrics (directional accuracy, trend accuracy, MAE, Sharpe ratio).
+- Prediction flow: `src/crypto_predictor_improved.py` accepts model selection info and runs predictions across the supported coins.
+
+For a full diagram and detailed internals see `docs/ARCHITECTURE.md` and `docs/MULTI_MODEL_SYSTEM.md`.
+
+### Pipeline Visual
+
+Below is a compact visual of the pipeline (click to open full-size):
+
+![Pipeline Diagram](docs/images/pipeline_diagram.svg)
+
+Figure: Data Update → Model Manager → Selection Menu → Train / Use → Predict & Output.
+
+## Where to find the detailed docs
+
+All other markdown files have been moved to `docs/`. Open the folder for detailed guides, examples, and full architectural diagrams. Notable files:
+
+- `docs/USAGE_GUIDE.md` - Yahoo Finance updater and automated update instructions
+- `docs/ARCHITECTURE.md` - Full system architecture diagram and model manager flow
+- `docs/MULTI_MODEL_SYSTEM.md` - Complete multi-model UX and registry details
+- `docs/QUICK_START.md` - Short quick-start snippets and environment notes
+
+## Model performance (summary)
+
+- Directional accuracy: ~57% (better than random but not perfect)
+- 3-day trend accuracy: ~63%
+- MAE (mean absolute error): ~2.9%
+- RMSE: ~4.1%
+
+These values are approximate. See detailed `docs/` files for full training logs and metrics.
+
+## Troubleshooting (common)
+
+- TensorFlow/Numpy compatibility: Use `tensorflow==2.10.0` with `numpy<2.0.0` for best GPU compatibility. Example:
+
+  pip install "numpy<2" --force-reinstall
+  pip install --force-reinstall "tensorflow==2.10.0"
+
+- GPU not detected: verify CUDA and cuDNN installation and that drivers are up-to-date. The model will fall back to CPU if no GPU is available.
+
+- Data not found: run the updater first:
+
+  python -m src.utils.update_data
+
+## How to add / train models
+
+1. Run `python run_full_pipeline.py` and choose "Train NEW" from the menu.
+2. Training saves `best_improved_model.h5` then the ModelManager renames and registers it as `user_model_<timestamp>.h5` in `data/models_gpu_improved/`.
+3. Models are tracked in `data/models_gpu_improved/model_registry.json` and will appear in the menu on subsequent runs.
+
+## Next steps and contribution notes
+
+- The codebase is ready to share. If you want me to commit these changes and push them to your remote repository, tell me and confirm that I should run the git commands here (I will need push access / configured remote). If you prefer to push yourself, run:
+
+  git add docs README.md
+  git commit -m "Move docs into docs/ and add consolidated root README"
+  git push
+
+## License & Disclaimer
+
+This project is provided under the MIT License (see LICENSE). It is for educational/research purposes only and not financial advice.
+
+---
+
+For full documentation, diagrams, training results and developer notes: open the `docs/` folder.
+
+Built with TensorFlow, Pandas, and Yahoo Finance
 # 🚀 Cryptocurrency Price Prediction System
 
 A comprehensive machine learning system for predicting cryptocurrency prices using advanced deep learning techniques. **GPU-accelerated training with improved accuracy and realistic predictions.**
