@@ -54,6 +54,106 @@ Below is a compact visual of the pipeline (click to open full-size):
 
 Figure: Data Update → Model Manager → Selection Menu → Train / Use → Predict & Output.
 
+### Architecture Diagram (inline)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    USER RUNS: run_full_pipeline.py              │
+└────────────────────────────┬────────────────────────────────────┘
+                   │
+      ┌────────────────────▼─────────────────────┐
+      │  STEP 1: Data Collection                 │
+      │  ├─ Check dependencies                   │
+      │  ├─ Download crypto data (Yahoo Finance) │
+      │  ├─ 9 cryptocurrencies                   │
+      │  ├─ 6K+ records, 2 years                 │
+      │  └─ Save to data/raw_data/               │
+      └────────────────────┬─────────────────────┘
+                   │
+      ┌────────────────────▼──────────────────────────┐
+      │  STEP 2: Initialize Model Manager             │
+      │  ├─ Create ModelManager instance              │
+      │  ├─ Auto-register pre-trained model           │
+      │  ├─ Load model_registry.json                  │
+      │  └─ Scan for user-trained models              │
+      └────────────────────┬──────────────────────────┘
+                   │
+      ┌────────────────────▼──────────────────────────┐
+      │  STEP 3: Display Model Selection Menu          │
+      │  ├─ List all available models                 │
+      │  ├─ Show accuracy metrics                     │
+      │  ├─ Show creation dates                       │
+      │  └─ Wait for user input (1, 2, 3, etc.)       │
+      └────────────────────┬──────────────────────────┘
+                   │
+          ┌──────────────┼──────────────┐
+          │              │              │
+       ┌────▼─────┐   ┌────▼────┐   ┌────▼──────┐
+       │ User: 1  │   │ User: 2 │   │ User: 3   │
+       │(Pre-tr)  │   │(User MD)│   │(Train NEW)│
+       └────┬─────┘   └────┬────┘   └────┬──────┘
+          │              │              │
+       ┌────▼─────────┐    │    ┌─────────▼──────┐
+       │ Selection: 1 │    │    │ Selection: 3   │
+       └────┬─────────┘    │    └─────────┬──────┘
+          │              │              │
+          │    ┌─────────▼────────┐     │
+          │    │ Selection: 2     │     │
+          │    └────────┬─────────┘     │
+          │             │               │
+          │   ┌─────────┴────────┐      │
+          │   │  get_model_files │      │
+          │   │  Return:         │      │
+          │   │  - model path    │      │
+          │   │  - scaler paths  │      │
+          │   └────────┬────────┘      │
+          │            │               │
+       ┌────▼────────────▼───┐      ┌────▼────────────┐
+       │  Load Selected Model │      │  Train New Model│
+       │  (Instant - 2 sec)   │      │  (40-50 sec GPU)│
+       └────┬────────────────┘      └────┬──────┬─────┘
+          │                            │      │
+          │                       ┌────▼─┐  ┌▼────────┐
+          │                       │Train │  │Register │
+          │                       │Model │  │+ Version│
+          │                       └────┬─┘  └┬────────┘
+          │                            │     │
+          │                       ┌────▼────▼────┐
+          │                       │Save with:    │
+          │                       │-Timestamp    │
+          │                       │-Metrics      │
+          │                       │-Registry     │
+          │                       └────┬─────────┘
+          │                            │
+          ┌────────────────────────────┴──────┐
+          │                                   │
+      ┌─────▼────────────┐             ┌───────▼──────────┐
+      │ STEP 4: Predict  │             │ STEP 4: Predict  │
+      │ Using Model 1/2  │             │ Using New Model  │
+      │ (Instant)        │             │ (Immediate)      │
+      └─────┬────────────┘             └───────┬──────────┘
+          │                                   │
+          └────────────────┬──────────────────┘
+                   │
+      ┌──────────────────────▼─────────────────┐
+      │  Generate Predictions                  │
+      │  ├─ Process all 9 cryptos              │
+      │  ├─ Calculate features                 │
+      │  ├─ Run LSTM predictions               │
+      │  ├─ Show current price                 │
+      │  ├─ Show predicted change              │
+      │  ├─ Show 3-day forecast                │
+      │  └─ Display results                    │
+      └──────────────────────┬──────────────────┘
+                   │
+      ┌──────────────────────▼──────────────────┐
+      │  Pipeline Complete ✅                   │
+      │  - Data: Updated                        │
+      │  - Model: Selected/Trained              │
+      │  - Predictions: Generated               │
+      └───────────────────────────────────────┘
+```
+
 ## Where to find the detailed docs
 
 All other markdown files have been moved to `docs/`. Open the folder for detailed guides, examples, and full architectural diagrams. Notable files:
