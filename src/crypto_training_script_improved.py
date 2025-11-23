@@ -315,33 +315,69 @@ class ImprovedCryptoPricePredictor:
         return model
     
     def train_improved_model(self, X, y, validation_split=0.2):
-        """Train the improved model"""
+        """Train the improved model with enhanced logging"""
         print("🚀 Training improved model...")
+        print(f"   📊 Training samples: {len(X):,}")
+        print(f"   📏 Input shape: {X.shape}")
+        print(f"   🎯 Target shape: {y.shape}")
+        print(f"   📈 Validation split: {validation_split*100:.1f}%")
         
         if self.model is None:
             self.model = self.build_improved_model((X.shape[1], X.shape[2]))
         
-        # Callbacks
+        # Enhanced callbacks with better checkpointing
+        checkpoint_dir = PROJECT_ROOT / 'data' / 'models_gpu_improved'
+        os.makedirs(checkpoint_dir, exist_ok=True)
+        
         callbacks = [
-            EarlyStopping(monitor='val_loss', patience=15, restore_best_weights=True),
-            ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=10, min_lr=1e-6),
-            ModelCheckpoint('best_improved_model.h5', monitor='val_loss', save_best_only=True)
+            EarlyStopping(
+                monitor='val_loss', 
+                patience=15, 
+                restore_best_weights=True,
+                verbose=1
+            ),
+            ReduceLROnPlateau(
+                monitor='val_loss', 
+                factor=0.5, 
+                patience=10, 
+                min_lr=1e-6,
+                verbose=1
+            ),
+            ModelCheckpoint(
+                str(checkpoint_dir / 'best_improved_model.h5'), 
+                monitor='val_loss', 
+                save_best_only=True,
+                verbose=1
+            )
         ]
         
-        # Train
-        history = self.model.fit(
-            X, y,
-            epochs=100,
-            batch_size=32,
-            validation_split=validation_split,
-            callbacks=callbacks,
-            verbose=1,
-            shuffle=True
-        )
+        # Train with timestamp
+        start_time = datetime.now()
+        print(f"   ⏰ Training started at: {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
         
-        self.training_history = history.history
-        print("✅ Improved training completed!")
-        return history
+        try:
+            history = self.model.fit(
+                X, y,
+                epochs=100,
+                batch_size=32,
+                validation_split=validation_split,
+                callbacks=callbacks,
+                verbose=1,
+                shuffle=True
+            )
+            
+            end_time = datetime.now()
+            training_duration = end_time - start_time
+            print(f"   ⏰ Training completed at: {end_time.strftime('%Y-%m-%d %H:%M:%S')}")
+            print(f"   ⏱️  Total training time: {training_duration}")
+            
+            self.training_history = history.history
+            print("✅ Improved training completed!")
+            return history
+            
+        except Exception as e:
+            print(f"❌ Training error: {str(e)}")
+            raise
     
     def create_training_visualizations(self, save_dir=None):
         """Create comprehensive training visualizations"""
@@ -665,16 +701,29 @@ Training Summary:
         joblib.dump(self.price_scaler, os.path.join(model_dir, 'price_scaler.pkl'))
         joblib.dump(self.feature_scaler, os.path.join(model_dir, 'feature_scaler.pkl'))
         
+        # Get training metrics if available
+        training_metrics = {}
+        if hasattr(self, 'training_history') and self.training_history:
+            training_metrics = {
+                'final_training_loss': self.training_history['loss'][-1] if 'loss' in self.training_history else None,
+                'final_validation_loss': self.training_history['val_loss'][-1] if 'val_loss' in self.training_history else None,
+                'best_validation_loss': min(self.training_history['val_loss']) if 'val_loss' in self.training_history else None,
+                'total_epochs': len(self.training_history['loss']) if 'loss' in self.training_history else None,
+            }
+        
         metadata = {
             'sequence_length': self.sequence_length,
             'prediction_days': self.prediction_days,
             'feature_columns': self.feature_columns,
             'target_column': self.target_column,
             'model_type': 'Improved_LSTM_Percentage_Change',
+            'model_version': '2.0',
             'training_date': datetime.now().isoformat(),
             'tensorflow_version': tf.__version__,
             'num_features': len(self.feature_columns),
-            'architecture': 'LSTM + Percentage Change Prediction'
+            'architecture': 'LSTM + Percentage Change Prediction',
+            'training_metrics': training_metrics,
+            'gpu_enabled': len(tf.config.list_physical_devices('GPU')) > 0
         }
         
         with open(os.path.join(model_dir, 'model_metadata.json'), 'w') as f:

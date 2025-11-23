@@ -198,15 +198,15 @@ class ImprovedCryptoPredictor:
         
         return X
     
-    def predict(self, df):
-        """Make percentage change prediction"""
+    def predict(self, df, return_confidence=False):
+        """Make percentage change prediction with optional confidence estimate"""
         if self.model is None:
             print("❌ Model not loaded!")
             return None
         
         try:
             # Create features
-            df_with_features = self.create_improved_features(df.copy())
+            df_with_features = self.create_improved_features(df.copy(), verbose=False)
             
             # Prepare prediction data
             X = self.prepare_prediction_data(df_with_features)
@@ -217,10 +217,17 @@ class ImprovedCryptoPredictor:
             prediction_scaled = self.model.predict(X, verbose=0)
             prediction_pct = self.price_scaler.inverse_transform(prediction_scaled)[0][0]
             
+            # Calculate basic confidence estimate (based on prediction magnitude)
+            # Smaller predictions are generally more reliable
+            if return_confidence:
+                confidence = max(0, min(100, 100 - abs(prediction_pct) * 2))
+                return prediction_pct, confidence
+            
             return prediction_pct
             
         except Exception as e:
-            print(f"   ❌ Prediction error: {str(e)}")
+            if self.verbose:
+                print(f"   ❌ Prediction error: {str(e)}")
             return None
     
     def predict_price_from_change(self, current_price, predicted_change_pct):

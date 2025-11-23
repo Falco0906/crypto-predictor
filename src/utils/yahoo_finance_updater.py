@@ -46,23 +46,27 @@ class YahooFinanceUpdater:
         self.data_dir = PROJECT_ROOT / 'data' / 'raw_data'
         os.makedirs(self.data_dir, exist_ok=True)
         
-    def fetch_crypto_data(self, symbol, period='2y', interval='1d'):
+    def fetch_crypto_data(self, symbol, period='2y', interval='1d', retry_count=3):
         """
-        Fetch cryptocurrency data from Yahoo Finance
+        Fetch cryptocurrency data from Yahoo Finance with retry logic
         
         Args:
             symbol (str): Cryptocurrency symbol (e.g., 'BTC-USD')
             period (str): Time period ('1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max')
             interval (str): Data interval ('1m', '2m', '5m', '15m', '30m', '60m', '90m', '1h', '1d', '5d', '1wk', '1mo', '3mo')
+            retry_count (int): Number of retry attempts if fetch fails
         """
-        try:
-            print(f"📊 Fetching {symbol} data from Yahoo Finance...")
-            
-            # Get ticker object
-            ticker = yf.Ticker(symbol)
-            
-            # Fetch historical data
-            data = ticker.history(period=period, interval=interval)
+        for attempt in range(retry_count):
+            try:
+                print(f"📊 Fetching {symbol} data from Yahoo Finance...")
+                if attempt > 0:
+                    print(f"   ⚠️  Retry attempt {attempt + 1}/{retry_count}")
+                
+                # Get ticker object
+                ticker = yf.Ticker(symbol)
+                
+                # Fetch historical data
+                data = ticker.history(period=period, interval=interval)
             
             if data.empty:
                 print(f"   ❌ No data received for {symbol}")
@@ -111,32 +115,46 @@ class YahooFinanceUpdater:
                 data['date'] = pd.to_datetime(data['date'])
                 data = data.set_index('date')
             
-            print(f"   ✅ {coin_name}: {len(data)} records fetched")
-            return data
-            
-        except Exception as e:
-            print(f"   ❌ Error fetching {symbol}: {str(e)}")
-            return None
+                print(f"   ✅ {coin_name}: {len(data)} records fetched")
+                return data
+                
+            except Exception as e:
+                if attempt < retry_count - 1:
+                    print(f"   ⚠️  Error fetching {symbol} (attempt {attempt + 1}): {str(e)}")
+                    import time
+                    time.sleep(2)  # Wait before retry
+                    continue
+                else:
+                    print(f"   ❌ Error fetching {symbol} after {retry_count} attempts: {str(e)}")
+                    return None
     
     def update_all_crypto_data(self, period='2y', interval='1d'):
         """
-        Update all cryptocurrency datasets
+        Update all cryptocurrency datasets with progress tracking
         """
         print("🚀 Updating all cryptocurrency data from Yahoo Finance...")
         print("=" * 60)
         
         updated_data = []
+        total_coins = len(self.crypto_symbols)
+        successful = 0
+        failed = 0
         
-        for coin_name, symbol in self.crypto_symbols.items():
+        for idx, (coin_name, symbol) in enumerate(self.crypto_symbols.items(), 1):
+            print(f"\n[{idx}/{total_coins}] Processing {coin_name}...")
             data = self.fetch_crypto_data(symbol, period, interval)
             if data is not None:
                 updated_data.append(data)
+                successful += 1
                 
                 # Save individual coin data
                 filename = f"coin_{coin_name}.csv"
                 filepath = self.data_dir / filename
                 data.to_csv(filepath)
                 print(f"   💾 Saved to {filepath}")
+            else:
+                failed += 1
+                print(f"   ⚠️  Failed to fetch {coin_name} data")
         
         if not updated_data:
             print("❌ No data was fetched!")
@@ -150,8 +168,10 @@ class YahooFinanceUpdater:
         combined_data.to_csv(combined_filepath)
         
         print(f"\n📊 Data Update Complete!")
+        print(f"   ✅ Successfully updated: {successful}/{total_coins} cryptocurrencies")
+        if failed > 0:
+            print(f"   ⚠️  Failed: {failed} cryptocurrencies")
         print(f"   Total records: {len(combined_data)}")
-        print(f"   Cryptocurrencies: {len(updated_data)}")
         print(f"   Date range: {combined_data.index.min()} to {combined_data.index.max()}")
         print(f"   Combined data saved to: {combined_filepath}")
         
