@@ -78,6 +78,24 @@ Common notes for macOS
 - The project falls back to CPU if no GPU backend is available.
 - Use Python 3.10 if you want exact parity with the development environment (helps avoid TensorFlow wheel mismatches).
 
+Quick helper script
+- If you want a simple, one-command helper I added `scripts/setup_macos_cpu.sh` which:
+   - prefers conda (if available) and otherwise creates a local venv
+   - creates a Python 3.10 environment
+   - installs `tensorflow-macos` and the project requirements (no-deps)
+
+Usage (example):
+
+```bash
+# Make script executable (first time)
+chmod +x scripts/setup_macos_cpu.sh
+
+# Run it (it will guide you to use conda or venv)
+./scripts/setup_macos_cpu.sh
+```
+
+If the script fails installing `tensorflow-macos` in a venv, it's usually because your system Python is a version that doesn't match published wheels — in that case install Miniforge/Miniconda and re-run the script (it will print the conda commands).
+
 
 ## Supported Coins
 
