@@ -73,20 +73,28 @@ python -c "import pandas, numpy, sklearn, matplotlib; print('All packages import
 
 #### **Step 1: Update Data (Live from Yahoo Finance)**
 ```bash
-# Get latest cryptocurrency data
-python update_data.py
+# From project root
+python -m src.utils.update_data
 ```
 
-#### **Step 2: Train the IMPROVED Model**
+#### **Step 2: Train the IMPROVED Model (GPU-friendly)**
 ```bash
+# Optional: let TensorFlow grow GPU memory instead of grabbing it all at once
+# (on Windows PowerShell)
+$env:TF_FORCE_GPU_ALLOW_GROWTH="true"
+
 # Train with improved architecture and features
-python crypto_training_script_improved.py
+python -m src.crypto_training_script_improved
 ```
 
-#### **Step 3: Make IMPROVED Predictions**
+#### **Step 3: Make IMPROVED Predictions (using GPU-trained model)**
 ```bash
-# Load improved model and make multi-day predictions
-python crypto_predictor_improved.py
+# The improved training script saves directly into data/models_gpu_improved
+# A pretrained improved model is already included in this folder in the repo,
+# so you can run predictions on any machine right after cloning (no retrain needed).
+
+# Run the predictor to load the latest/pretrained GPU-trained model and print forecasts
+python -m src.crypto_predictor_improved
 ```
 
 #### **Step 4: View Training Visualizations**
@@ -301,13 +309,17 @@ sudo apt install python3-dev build-essential
 pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org tensorflow==2.10.0
 ```
 
-## 📈 Model Performance
+## 📈 Model Performance (Latest Run)
 
-### 🆕 IMPROVED Model Results
-- **Better Accuracy**: Resolved extreme -99% predictions
-- **Realistic Predictions**: Percentage changes instead of absolute prices
-- **Multi-day Forecasting**: Sequential predictions with dynamic feature updates
-- **Training Visualizations**: Auto-generated charts for every training run
+- **Directional Accuracy** (up/down): ~**57%**
+- **3-day Trend Accuracy**: ~**63%**
+- **Mean Absolute Error (MAE)**: ~**2.9%** (daily percentage change)
+- **Root Mean Squared Error (RMSE)**: ~**4.1%**
+- **Overfitting**: *No* – validation loss stays slightly below training loss
+- **Trading metrics**: toy backtest only (reported in logs as such)
+
+The model predicts **percentage changes** instead of raw prices, which keeps
+predictions realistic (no -99% spikes) and easy to interpret.
 
 ### 📊 Training Visualization Features
 - **Loss Curves**: Training vs validation loss over time
@@ -345,50 +357,36 @@ pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-hos
 - **Training Callbacks**: EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
 - **No Data Leakage**: Removed overlapping sequences that caused overfitting
 
-## 📁 File Structure
+## 📁 File Structure (Cleaned Layout)
 
 ```
 crypto_predictor/
-├── yahoo_finance_updater.py           # Yahoo Finance data fetcher
-├── update_data.py                     # Simple data update script
-├── crypto_training_script.py          # Original training script (reference)
-├── crypto_training_script_improved.py # 🆕 IMPROVED training script
-├── crypto_predictor.py                # Original prediction script (reference)
-├── crypto_predictor_improved.py       # 🆕 IMPROVED prediction script
-├── crypto_web_predictor.tsx           # Web interface
-├── trained_model_advanced/            # Original model directory
-│   ├── crypto_advanced_model.h5       # Original trained model
-│   ├── price_scaler.pkl               # Original price scaler
-│   ├── feature_scaler.pkl             # Original feature scaler
-│   └── model_metadata.json            # Original model metadata
-├── trained_model_improved/            # 🆕 IMPROVED model directory
-│   ├── crypto_improved_model.h5       # 🆕 Improved trained model
-│   ├── price_scaler.pkl               # 🆕 Improved price scaler
-│   ├── feature_scaler.pkl             # 🆕 Improved feature scaler
-│   └── model_metadata.json            # 🆕 Improved model metadata
-├── training_visualizations/            # 🆕 Auto-generated training charts
-│   ├── training_results.png            # Main training overview
-│   ├── loss_convergence_analysis.png  # Loss analysis
-│   ├── metrics_correlation.png        # Metrics correlation
-│   ├── training_progress_summary.png  # Progress summary
-│   └── training_history.csv           # Raw training data
-├── yahoo_finance_data/                # Live data directory
-│   ├── combined_crypto_data.csv       # Combined dataset
-│   └── coin_*.csv                     # Individual coin data
-├── coin_BTC.csv                       # Bitcoin (live data)
-├── coin_ETH.csv                       # Ethereum (live data)
-├── coin_SOL.csv                       # Solana (live data)
-├── coin_LTC.csv                       # Litecoin (live data)
-├── coin_ADA.csv                       # Cardano (live data)
-├── coin_DOT.csv                       # Polkadot (live data)
-├── coin_LINK.csv                       # Chainlink (live data)
-├── coin_UNI.csv                       # Uniswap (live data)
-├── coin_MATIC.csv                     # Polygon (live data)
-├── coin_AVAX.csv                      # Avalanche (live data)
-├── .gitignore                         # Git ignore rules
-├── WHY_POOR_ACCURACY.md               # 🆕 Root cause analysis
-└── README.md                          # This file
+├── src/
+│   ├── __init__.py
+│   ├── crypto_training_script.py          # Advanced GRU+attention training
+│   ├── crypto_training_script_improved.py # IMPROVED LSTM percentage-change training
+│   ├── crypto_predictor.py                # Legacy predictor
+│   ├── crypto_predictor_improved.py       # IMPROVED predictor (uses GPU models dir by default)
+│   └── utils/
+│       ├── __init__.py
+│       ├── auto_update.py                 # Scheduled daily Yahoo update
+│       └── update_data.py                 # One-shot Yahoo update + train-ready CSVs
+├── data/
+│   ├── raw_data/                          # coin_*.csv used for training/prediction
+│   ├── processed_data/                    # (optional) processed datasets
+│   ├── models/                            # Original saved models (optional)
+│   └── models_gpu_improved/               # GPU-trained improved models (used by predictor)
+├── docs/
+│   └── training_visualizations/           # Auto-generated training charts & CSV
+├── yahoo_finance_updater.py               # Yahoo Finance data fetcher
+├── README.md
+├── USAGE_GUIDE.md
+├── WHY_POOR_ACCURACY.md
+└── requirements.txt
 ```
+
+> On first GPU training run, the improved script still saves into `trained_model_improved/`.
+> Copy those files once into `data/models_gpu_improved/` to use them for fast prediction.
 
 ## 🔄 **Working with the Repository**
 
